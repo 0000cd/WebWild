@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="WebWild 网络环境测试工具。快速检测网络的可用性，支持多个中文和国际网址。">
+    <meta name="keywords" content="网络环境测试, 网络测试, WebWild, IP检测, 网站可用性测试">
+    <link rel="canonical" href="https://ww.0000cd.com" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+    <link rel="manifest" href="/site.webmanifest">
+
+    <title>网络环境测试工具 - WebWild</title>
+    <style>
+        /* 全局样式 */
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background-color: #f9f9f9;
+        }
+
+        /* 容器样式 */
+        .container {
+            background-color: white;
+            padding: 40px 30px;
+            border-radius: 10px;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 600px;
+        }
+
+        /* 标题样式 */
+        h1 {
+            margin: 0 0 20px;
+            font-size: 24px;
+            text-align: center;
+            color: #333;
+        }
+
+        /* 描述段落样式 */
+        p {
+            font-size: 14px;
+            color: #555;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        /* 表格样式 */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+
+        th, td {
+            padding: 12px 10px;
+            border: 1px solid #ddd;
+            text-align: center;
+            font-size: 14px;
+        }
+
+        th {
+            background-color: #f2f2f2;
+        }
+
+        /* 链接样式 */
+        a {
+            color: #007bff;
+            text-decoration: none;
+        }
+
+        a:hover {
+            text-decoration: underline;
+        }
+
+        /* 按钮样式 */
+        button {
+            display: block;
+            width: 100%;
+            padding: 12px 0;
+            font-size: 16px;
+            cursor: pointer;
+            background-color: blue;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            transition: background-color 0.3s;
+        }
+
+        button:hover:not(:disabled) {
+            background-color: #3838E1;
+        }
+
+        button:disabled {
+            background-color: #aaa;
+            cursor: not-allowed;
+        }
+
+        /* 结果显示样式 */
+        .result {
+            font-weight: bold;
+        }
+
+        .green {
+            color: green;
+        }
+
+        .red {
+            color: red;
+        }
+
+        .blue {
+            color: blue; /* 蓝色强调 */
+        }
+
+        /* IP信息样式 */
+        #ip-info {
+            font-size: 14px;
+            color: #333;
+            margin-bottom: 15px;
+            text-align: center;
+            position: relative;
+        }
+
+        #ip-info[data-tooltip]:hover::after {
+            content: attr(data-tooltip);
+            position: absolute;
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: rgba(0, 0, 0, 0.75);
+            color: white;
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-size: 12px;
+            white-space: nowrap;
+        }
+
+        /* 评分显示样式 */
+        #score {
+            font-size: 18px;
+            font-weight: bold;
+            text-align: center;
+            margin-top: 25px;
+        }
+
+        /* 页脚样式 */
+        footer {
+            font-size: 12px;
+            color: #999;
+            text-align: center;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>网络环境测试 - WebWild 🏝️</h1>
+        
+        <!-- IP信息展示 -->
+        <div id="ip-info" data-tooltip="打开控制台查看详情">
+            <span id="loading">正在加载IP地址...</span>
+        </div>
+
+        <!-- 网址测试说明 -->
+        <p>请点下方按钮，测试您当前网络的可用性：</p>
+
+        <!-- 测试网址表格 -->
+        <table id="url-table">
+            <thead>
+                <tr>
+                    <th>测试网址</th>
+                    <th>测试结果</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- 动态生成网址列表 -->
+            </tbody>
+        </table>
+
+        <!-- 开始测试按钮 -->
+        <button id="start-test">开始测试</button>
+        
+        <!-- 评分展示 -->
+        <div id="score">
+            当前评分：0 / 0
+        </div>
+    </div>
+
+    <!-- 版权信息 -->
+    <footer>
+        © 2024 WebWild-0000CD.com <a href="https://github.com/0000cd/WebWild">Github</a>
+    </footer>
+
+    <script>
+        // 配置常量
+        const urls = [
+            'https://www.bing.com',
+            'https://weibo.com',
+            'https://www.aliyun.com',
+            'https://www.bilibili.com',
+            'https://store.steampowered.com',
+            'https://duckduckgo.com',
+            'https://chatgpt.com',
+            'https://github.com',
+            'https://discord.com',
+            'https://onedrive.live.com',
+        ];
+
+        const TIMEOUT = 10000; // 请求超时时间（毫秒）
+        const BUTTON_DISABLE_TIME = 3000; // 按钮禁用时间（毫秒）
+
+        // 状态变量
+        let score = 0;
+        const totalUrls = urls.length;
+        let testedUrls = 0;
+        let failedUrls = [];
+
+        /**
+         * 动态生成测试网址表格
+         */
+        function generateTable() {
+            const tbody = document.querySelector('#url-table tbody');
+            tbody.innerHTML = ''; // 清空现有内容
+
+            urls.forEach((url, index) => {
+                const row = document.createElement('tr');
+
+                const urlCell = document.createElement('td');
+                const link = document.createElement('a');
+                link.href = url;
+                link.target = "_blank";
+                link.textContent = url;
+                urlCell.appendChild(link);
+
+                const resultCell = document.createElement('td');
+                resultCell.className = 'result';
+                resultCell.id = `result-${index}`;
+                resultCell.textContent = '等待';
+
+                row.appendChild(urlCell);
+                row.appendChild(resultCell);
+                tbody.appendChild(row);
+            });
+
+            // 初始化评分显示
+            updateScoreDisplay();
+        }
+
+        /**
+         * 更新评分显示
+         */
+        function updateScoreDisplay() {
+            document.getElementById('score').textContent = `当前评分：${score} / ${totalUrls}`;
+        }
+
+        /**
+         * 开始测试按钮点击事件处理
+         */
+        document.getElementById('start-test').addEventListener('click', () => {
+            const button = document.getElementById('start-test');
+            button.disabled = true;
+            button.textContent = '正在测试...';
+
+            // 重置状态
+            score = 0;
+            testedUrls = 0;
+            failedUrls = [];
+            updateScoreDisplay();
+
+            // 开始测试所有网址
+            urls.forEach((url, index) => {
+                testUrl(url, index);
+            });
+
+            // 设置按钮恢复时间
+            setTimeout(() => {
+                button.disabled = false;
+                button.textContent = '开始测试';
+            }, BUTTON_DISABLE_TIME);
+        });
+
+        /**
+         * 测试单个网址的可访问性
+         * @param {string} url - 测试的网址
+         * @param {number} index - 网址在列表中的索引
+         */
+        function testUrl(url, index) {
+            const resultCell = document.getElementById(`result-${index}`);
+            resultCell.textContent = '测试中...';
+            resultCell.className = 'result';
+
+            // 创建带有超时的 Fetch 请求
+            const controller = new AbortController();
+            const signal = controller.signal;
+
+            const fetchTimeout = setTimeout(() => {
+                controller.abort(); // 超时中止请求
+            }, TIMEOUT);
+
+            fetch(url, { mode: 'no-cors', signal })
+                .then(() => {
+                    clearTimeout(fetchTimeout);
+                    updateResult(resultCell, '通过 ✅', 'green', true, url);
+                })
+                .catch(error => {
+                    clearTimeout(fetchTimeout);
+                    if (error.name === 'AbortError') {
+                        updateResult(resultCell, '超时 ⛔', 'red', false, url);
+                    } else {
+                        updateResult(resultCell, '失败 ⛔', 'red', false, url);
+                    }
+                });
+        }
+
+        /**
+         * 更新测试结果并评分
+         * @param {HTMLElement} cell - 结果显示的单元格
+         * @param {string} status - 测试状态文本
+         * @param {string} colorClass - 颜色样式类
+         * @param {boolean} isSuccess - 是否测试成功
+         * @param {string} url - 测试的网址
+         */
+        function updateResult(cell, status, colorClass, isSuccess, url) {
+            cell.textContent = status;
+            cell.classList.add(colorClass);
+
+            if (isSuccess) {
+                score++;
+            } else {
+                failedUrls.push(url);
+            }
+
+            testedUrls++;
+            updateScoreDisplay();
+
+            // 如果所有网址都已测试，显示最终得分
+            if (testedUrls === totalUrls) {
+                const scoreElement = document.getElementById('score');
+                scoreElement.textContent = `最终得分：${score} / ${totalUrls}`;
+                scoreElement.classList.add('blue');
+
+                // 在控制台输出测试结果
+                console.log(`最终得分：${score} / ${totalUrls}`);
+                if (failedUrls.length > 0) {
+                    console.log('无法访问：', failedUrls);
+                } else {
+                    console.log('测试通过，Its a wild wild web!');
+                }
+            }
+        }
+
+        /**
+         * 处理从 IP API 返回的响应
+         * @param {Object} response - IP API 的响应数据
+         */
+        function handleResponse(response) {
+            // 隐藏IP的最后两组
+            let maskedIp = response.ip.split('.').slice(0, 2).join('.') + '.**.**';
+
+            // 简化地点信息
+            let location = response.country_name;
+            if (response.region && response.region !== response.country_name) {
+                location += `，${response.region}`;
+            }
+
+            // 更新页面显示
+            document.getElementById('ip-info').textContent = `${maskedIp}（${location}）`;
+
+            // 在控制台输出详细信息
+            console.log(`IP 地址: ${response.ip}`);
+            console.log(`地理信息: ${response.country_name}, ${response.region}, ${response.city}`);
+        }
+
+        /**
+         * 获取并显示用户的IP信息
+         */
+        function fetchIPInfo() {
+            const script = document.createElement('script');
+            script.src = 'https://ipapi.co/jsonp/?callback=handleResponse';
+            script.onerror = () => {
+                document.getElementById('ip-info').textContent = '无法加载IP信息，检查网络或过滤插件';
+                console.error('IP信息加载失败，检查网络或过滤插件。');
+            };
+            document.body.appendChild(script);
+        }
+
+        // 页面加载完成后初始化
+        window.addEventListener('load', () => {
+            generateTable();
+            fetchIPInfo();
+        });
+    </script>
+
+</body>
+</html>
